@@ -22,7 +22,9 @@ cool_lead_species <- read.csv("cool_top_species.csv")
 cool_dinosaurs <- read.csv("cool_dinosaurs.csv")
 
 output <- bind_rows(cool_lead_species, merged_species, cool_dinosaurs) %>%
-  update_output_with_ott_data(.)
+  update_output_with_ott_data(.) %>%
+  # Apostrophes cause issues with db queries
+  mutate(common.name = str_remove_all(.$common.name, "'"))
 
 ########OUTPUTTING BELOW##########
 
