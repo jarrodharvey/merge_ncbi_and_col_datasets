@@ -1,7 +1,7 @@
 rm(list=ls())
 cat("\014")
 
-easypackages::packages("tibble", "magrittr", "dplyr", "stringr", "pbapply")
+easypackages::packages("tibble", "magrittr", "dplyr", "stringr", "pbapply", "DBI", "RSQLite", "pluralize")
 
 sapply(list.files("R", full.names = TRUE), source)
 
@@ -15,25 +15,34 @@ merged_species <- bind_rows(col_species, ncbi_species) %>%
   distinct(across(-image.lookup.text), .keep_all = TRUE) %>%
   arrange(nchar(common.name))
 
-# Abandoning this idea to disambiguate on scientific names
-# will not look too good for laypeople, will just select a scientific name
-# at random
-# merged_species$search.term <- merged_species$common.name
-#
-# duplicate_common_names <- merged_species$common.name %>%
-#   .[duplicated(.)]
-#
-# merged_species[
-#   merged_species$common.name %in% duplicate_common_names,
-#   ]$search.term <- paste0(
-#     merged_species[
-#       merged_species$common.name %in% duplicate_common_names,
-#     ]$common.name,
-#     " (",
-#     merged_species[
-#       merged_species$common.name %in% duplicate_common_names,
-#     ]$scientific.name,
-#     ")"
-#   )
+# The top six species can be cool/interesting ones to draw in the user
+cool_lead_species <- read.csv("cool_top_species.csv")
 
-write.csv(merged_species, "species_table.csv")
+# Some popular dinosaur species, as they are often known by scientific names
+cool_dinosaurs <- read.csv("cool_dinosaurs.csv")
+
+output <- bind_rows(cool_lead_species, merged_species, cool_dinosaurs) %>%
+  update_output_with_ott_data(.)
+
+########OUTPUTTING BELOW##########
+
+write.csv(output, "species_table.csv", row.names = FALSE)
+
+saveRDS(unique(output$common.name), "unique_common_names.rds" )
+
+file.copy("unique_common_names.rds", "/home/jarrod/Dropbox/scripts/evolution-mapper/data/", overwrite = TRUE)
+
+# I don't think the third column will actually be needed for image lookup... I'll remove it.
+
+output$image.lookup.text <- NULL
+names(output) <- c("ott", "common", "scientific")
+
+mydb <- dbConnect(RSQLite::SQLite(), "species.sqlite")
+
+dbWriteTable(mydb, "species", output, overwrite = TRUE)
+
+dbDisconnect(mydb)
+
+file.copy("species.sqlite", "/home/jarrod/Dropbox/scripts/evolution-mapper/data/", overwrite = TRUE)
+
+file.copy("species_table.csv", "/home/jarrod/R Scripts/phylo_experimenting/data", overwrite = TRUE)
