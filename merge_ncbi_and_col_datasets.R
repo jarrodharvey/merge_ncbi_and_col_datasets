@@ -15,6 +15,8 @@ merged_species <- bind_rows(col_species, ncbi_species) %>%
   distinct(across(-image.lookup.text), .keep_all = TRUE) %>%
   arrange(nchar(common.name))
 
+unique_scientific_names_with_authorship <- unique(merged_species$image.lookup.text)
+
 # The top six species can be cool/interesting ones to draw in the user
 cool_lead_species <- read.csv("cool_top_species.csv")
 
@@ -31,6 +33,10 @@ output <- bind_rows(cool_lead_species, merged_species, cool_dinosaurs) %>%
 write.csv(output, "species_table.csv", row.names = FALSE)
 
 saveRDS(unique(output$common.name), "unique_common_names.rds" )
+
+saveRDS(unique_scientific_names_with_authorship, "unique_scientific_names_with_authorship.rds")
+
+file.copy("unique_scientific_names_with_authorship.rds", "/home/jarrod/R Scripts/get_phylopic_uuids/data", overwrite = TRUE)
 
 file.copy("unique_common_names.rds", "/home/jarrod/Dropbox/scripts/evolution-mapper/data/", overwrite = TRUE)
 

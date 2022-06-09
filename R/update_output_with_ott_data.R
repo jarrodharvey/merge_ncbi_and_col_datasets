@@ -5,7 +5,8 @@ update_output_with_ott_data <- function(current_output) {
   current_output <- mutate(current_output, scientific.name = str_to_lower(current_output$scientific.name))
 
   joined <- left_join(current_output, ott_data, by = c("scientific.name" = "search_string")) %>%
-    distinct(.)
+    distinct(.) %>%
+    filter(!grepl("incertae_sedis_inherited", .$flags))
 
   new_output <- joined
 
