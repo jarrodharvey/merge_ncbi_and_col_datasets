@@ -26,7 +26,8 @@ cool_dinosaurs <- read.csv("cool_dinosaurs.csv")
 output <- bind_rows(cool_lead_species, merged_species, cool_dinosaurs) %>%
   update_output_with_ott_data(.) %>%
   # Apostrophes cause issues with db queries
-  mutate(common.name = str_remove_all(.$common.name, "'"))
+  mutate(common.name = str_remove_all(.$common.name, "'")) %>%
+  add_phylopic_uuids(.)
 
 ########OUTPUTTING BELOW##########
 
