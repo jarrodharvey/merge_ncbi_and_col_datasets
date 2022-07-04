@@ -18,7 +18,7 @@ update_output_with_ott_data <- function(current_output) {
 
   new_output$scientific.name <- new_output$unique_name
 
-  new_output <- select(new_output, c("ott_id", "common.name", "scientific.name")) %>%
+  new_output <- select(new_output, c("ott_id", "common.name", "scientific.name", "image.lookup.text")) %>%
     filter(!is.na(.$scientific.name))
 
   dbDisconnect(ott_db)

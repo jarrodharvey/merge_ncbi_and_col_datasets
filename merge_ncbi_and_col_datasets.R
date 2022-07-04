@@ -1,7 +1,7 @@
 rm(list=ls())
 cat("\014")
 
-easypackages::packages("tibble", "magrittr", "dplyr", "stringr", "pbapply", "DBI", "RSQLite", "pluralize")
+easypackages::packages("tibble", "magrittr", "dplyr", "stringr", "pbapply", "DBI", "RSQLite", "pluralize", "DBI")
 
 sapply(list.files("R", full.names = TRUE), source)
 
@@ -25,9 +25,10 @@ cool_dinosaurs <- read.csv("cool_dinosaurs.csv")
 
 output <- bind_rows(cool_lead_species, merged_species, cool_dinosaurs) %>%
   update_output_with_ott_data(.) %>%
+  add_phylopic_uuids(.) %>%
+  select(-c("image.lookup.text")) %>%
   # Apostrophes cause issues with db queries
-  mutate(common.name = str_remove_all(.$common.name, "'")) %>%
-  add_phylopic_uuids(.)
+  mutate(common.name = str_remove_all(.$common.name, "'"))
 
 ########OUTPUTTING BELOW##########
 
@@ -43,8 +44,8 @@ file.copy("unique_common_names.rds", "/home/jarrod/Dropbox/scripts/evolution-map
 
 # I don't think the third column will actually be needed for image lookup... I'll remove it.
 
-output$image.lookup.text <- NULL
-names(output) <- c("ott", "common", "scientific")
+# output$image.lookup.text <- NULL
+names(output) <- c("ott", "common", "scientific", "phylopic")
 
 mydb <- dbConnect(RSQLite::SQLite(), "species.sqlite")
 
